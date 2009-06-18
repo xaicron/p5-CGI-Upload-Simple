@@ -2,7 +2,7 @@ use inc::Module::Install;
 name 'CGI-Upload-Simple';
 all_from 'lib/CGI/Upload/Simple.pm';
 
-# requires '';
+requires 'CGI::Upload';
 
 tests 't/*.t';
 author_tests 'xt';
