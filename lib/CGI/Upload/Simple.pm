@@ -27,8 +27,6 @@ sub obtain {
 
 package CGI::Upload::Simple::File;
 
-our $VERSION = '0.01';
-
 sub new {
 	my $class = shift;
 	$class = ref $class || $class;
