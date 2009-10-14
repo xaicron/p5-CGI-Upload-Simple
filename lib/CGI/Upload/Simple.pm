@@ -3,25 +3,27 @@ package CGI::Upload::Simple;
 use strict;
 use warnings;
 use utf8;
-use 5.00801;
+use 5.008001;
 use Carp ();
 use CGI::Upload ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new {
 	my $class = shift;
 	$class = ref $class || $class;
-	my $cgi = shift;
-	bless { cgi => $cgi }, $class;
+	my $args = shift || {query => 'CGI'};
+	Carp::croak "Usage: $class->new({query => 'CGI'})" unless ref $args eq 'HASH' and $args->{query};
+	bless { args => $args }, $class;
 }
 
 sub obtain {
 	my $self = shift;
-	my $filed = shift;
+	my $field = shift || Carp::croak 'Usage: $upload->obtain($field)';
+	
 	CGI::Upload::Simple::File->new({
-		cgi   => $self->{cgi},
-		field => $filed,
+		args => $self->{args},
+		field => $field,
 	});
 }
 
@@ -33,9 +35,24 @@ sub new {
 	my $args = shift;
 	
 	bless {
-		upload => CGI::Upload->new($args->{cgi}),
-		field  => $args->{field}
+		upload => CGI::Upload->new($args->{args}),
+		field  => $args->{field},
 	}, $class;
+}
+
+sub field {
+	my $self = shift;
+	$self->{field};
+}
+
+sub file_size {
+	my $self = shift;
+	
+	unless (defined $self->{_CACHE}{file_size}) {
+		$self->{_CACHE}{file_size} = -s $self->file_handle;
+	}
+	
+	return $self->{_CACHE}{file_size};
 }
 
 sub mime_magic {
@@ -62,15 +79,36 @@ sub AUTOLOAD {
 __END__
 =head1 NAME
 
-CGI::Upload::Simple -
+CGI::Upload::Simple - CGI::Upload wrapper
 
 =head1 SYNOPSIS
 
   use CGI::Upload::Simple;
+  
+  my $upload = CGI::Upload::Simple->new;
+  my $up_file = $upload->obtain($up_file_field);
+  
+  $up_file->field;
+  $up_file->file_size;
 
 =head1 DESCRIPTION
 
-CGI::Upload::Simple is
+CGI::Upload::Simple is CGI:: Upload to more easily
+
+=head1 METHOD
+
+=over
+
+=item new(\%args)
+
+  my $upload = CGI::Upload::Simple->new;
+  my $upload = CGI::Upload::Simple->new({query => $q});
+
+=item obtain($field)
+
+  my $file = $upload->obtain('field'); # $file is CGI::Upload::Simple::File object
+
+=back
 
 =head1 AUTHOR
 
